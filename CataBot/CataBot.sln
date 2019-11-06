@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CataBot.Products", "CataBot
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CataBot.Domain", "CataBot.Domain\CataBot.Domain.csproj", "{4FB43177-F120-42DC-9FD2-B10F24708C43}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CataBot.Catalogs", "CataBot.Catalogs\CataBot.Catalogs.csproj", "{01062AED-661C-4039-A612-56E3A8B49C0A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{4FB43177-F120-42DC-9FD2-B10F24708C43}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4FB43177-F120-42DC-9FD2-B10F24708C43}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4FB43177-F120-42DC-9FD2-B10F24708C43}.Release|Any CPU.Build.0 = Release|Any CPU
+		{01062AED-661C-4039-A612-56E3A8B49C0A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{01062AED-661C-4039-A612-56E3A8B49C0A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{01062AED-661C-4039-A612-56E3A8B49C0A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{01062AED-661C-4039-A612-56E3A8B49C0A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

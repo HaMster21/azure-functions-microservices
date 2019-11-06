@@ -15,8 +15,8 @@ namespace CataBot.Products
 {
     public static class Http
     {
-        [FunctionName("NewProduct")]
-        public static async Task<IActionResult> Run(
+        [FunctionName("CreateProduct")]
+        public static async Task<IActionResult> CreateProduct(
             [HttpTrigger(AuthorizationLevel.Function, "post", Route = "product")] HttpRequest req,
             ILogger log)
         {
