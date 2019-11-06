@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace CataBot.Products.Schema
+namespace CataBot.Domain.Schema
 {
     public class ProductCreated
     {
