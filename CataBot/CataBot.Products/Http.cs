@@ -3,6 +3,7 @@ using System.IO;
 using System.Threading.Tasks;
 using CataBot.Domain.Model;
 using CataBot.Products.Data;
+using CataBot.Products.Schema;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs;
@@ -18,6 +19,7 @@ namespace CataBot.Products
         [FunctionName("CreateProduct")]
         public static async Task<IActionResult> CreateProduct(
             [HttpTrigger(AuthorizationLevel.Function, "post", Route = "product")] HttpRequest req,
+            [ServiceBus("product-created", Connection = "ServiceBusConnection")] IAsyncCollector<ProductCreated> createdTopic,
             ILogger log)
         {
             log.LogInformation("Creating a new product");
@@ -43,9 +45,10 @@ namespace CataBot.Products
                     await dbcontext.SaveChangesAsync();
                 }
 
+                await createdTopic.AddAsync(new ProductCreated(newProduct.ID, newProduct.Name, newProduct.Category));
+
                 return new CreatedResult("", newProduct);
             }
-
         }
     }
 }

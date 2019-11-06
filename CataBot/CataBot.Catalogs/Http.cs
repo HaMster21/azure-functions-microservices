@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using CataBot.Catalogs.Data;
+using CataBot.Catalogs.Schema;
 using CataBot.Domain.Model;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -19,6 +20,7 @@ namespace CataBot.Catalogs
         [FunctionName("CreateCatalog")]
         public static async Task<IActionResult> CreateCatalog(
             [HttpTrigger(AuthorizationLevel.Function, "post", Route = "catalog")] HttpRequest req,
+            [ServiceBus("catalog-created", Connection = "ServiceBusConnection")] IAsyncCollector<CatalogCreated> catalogCreatedTopic,
             ILogger log)
         {
             log.LogInformation("Creating a new catalog");
@@ -41,6 +43,8 @@ namespace CataBot.Catalogs
                     dbcontext.Catalogs.Add(newCatalog);
                     await dbcontext.SaveChangesAsync();
                 }
+
+                await catalogCreatedTopic.AddAsync(new CatalogCreated(newCatalog.ID, newCatalog.Name));
 
                 return new CreatedResult("", newCatalog);
             }
