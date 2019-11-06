@@ -1,13 +1,9 @@
 ﻿using System;
 
-namespace Model
+namespace CataBot.Domain.Model
 {
     public class Product
     {
-        public Product()
-        {
-        }
-
         public Guid ID { get; set; }
         public long GTIN { get; set; }
 

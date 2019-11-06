@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using CataBot.Domain.Model;
 using Microsoft.EntityFrameworkCore;
 
 namespace CataBot.Products.Data
@@ -19,11 +17,11 @@ namespace CataBot.Products.Data
         {
             base.OnModelCreating(modelBuilder);
 
-            modelBuilder.Entity<Model.Product>().HasKey(product => product.ID);
-            modelBuilder.Entity<Model.Product>().HasIndex(product => product.Name);
-            modelBuilder.Entity<Model.Product>().HasIndex(product => product.GTIN);
+            modelBuilder.Entity<Product>().HasKey(product => product.ID);
+            modelBuilder.Entity<Product>().HasIndex(product => product.Name);
+            modelBuilder.Entity<Product>().HasIndex(product => product.GTIN);
         }
 
-        public virtual DbSet<Model.Product> Products { get; }
+        public virtual DbSet<Product> Products { get; }
     }
 }

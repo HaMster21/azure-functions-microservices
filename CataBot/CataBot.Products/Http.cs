@@ -1,14 +1,15 @@
 using System;
 using System.IO;
 using System.Threading.Tasks;
+using CataBot.Domain.Model;
+using CataBot.Products.Data;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
-using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
-using CataBot.Products.Data;
-using Microsoft.EntityFrameworkCore;
 
 namespace CataBot.Products
 {
@@ -26,7 +27,7 @@ namespace CataBot.Products
                 var requestBody = await reader.ReadToEndAsync();
                 dynamic newProductInput = JsonConvert.DeserializeObject(requestBody);
 
-                var newProduct = new Model.Product()
+                var newProduct = new Product()
                 {
                     ID = Guid.NewGuid(),
                     Name = newProductInput.Name,
