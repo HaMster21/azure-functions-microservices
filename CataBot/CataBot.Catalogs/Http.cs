@@ -1,12 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text;
 using System.Threading.Tasks;
 using CataBot.Catalogs.Data;
-using CataBot.Catalogs.Schema;
 using CataBot.Domain.Model;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.EntityFrameworkCore;
@@ -20,7 +21,7 @@ namespace CataBot.Catalogs
         [FunctionName("CreateCatalog")]
         public static async Task<IActionResult> CreateCatalog(
             [HttpTrigger(AuthorizationLevel.Function, "post", Route = "catalog")] HttpRequest req,
-            [ServiceBus("catalog-created", Connection = "ServiceBusConnection")] IAsyncCollector<CatalogCreated> catalogCreatedTopic,
+            [ServiceBus("catalog-create-command", Connection = "ServiceBusConnection")] IAsyncCollector<Message> newCatalogQueue,
             ILogger log)
         {
             log.LogInformation("Creating a new catalog");
@@ -44,7 +45,11 @@ namespace CataBot.Catalogs
                     await dbcontext.SaveChangesAsync();
                 }
 
-                await catalogCreatedTopic.AddAsync(new CatalogCreated(newCatalog.ID, newCatalog.Name));
+                await newCatalogQueue.AddAsync(new Message()
+                {
+                    CorrelationId = req.Headers["CorrelationID"],
+                    Body = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(newCatalog))
+                });
 
                 return new CreatedResult("", newCatalog);
             }

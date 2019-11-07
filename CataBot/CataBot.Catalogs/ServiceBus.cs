@@ -1,11 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text;
 using CataBot.Catalogs.Data;
 using CataBot.Domain.Model;
 using CataBot.Domain.Schema;
+using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.WebJobs;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Microsoft.ServiceBus.Messaging;
+using Newtonsoft.Json;
 
 namespace CataBot.Catalogs
 {
@@ -13,9 +17,13 @@ namespace CataBot.Catalogs
     {
         [FunctionName("ImportNewProduct")]
         public static async void ImportProduct(
-            [ServiceBusTrigger("product-created", Connection = "ServiceBusConnection")] BrokeredMessage incMessage)
+            [ServiceBusTrigger("product-created", Connection = "ServiceBusConnection")] BrokeredMessage incMessage,
+            [ServiceBusTrigger("catalog-create-command", Connection = "ServiceBusConnection")] IAsyncCollector<Message> newCatalogQueue,
+            ILogger log)
         {
             var newProduct = incMessage.GetBody<ProductCreated>();
+
+            log.LogInformation($"Importing product");
 
             using (var dbcontext = new CatalogContext(new DbContextOptionsBuilder<CatalogContext>().UseSqlServer(Environment.GetEnvironmentVariable("DbConnection")).Options))
             {
@@ -23,14 +31,33 @@ namespace CataBot.Catalogs
 
                 if (!categoryCatalogFound)
                 {
-                    dbcontext.Catalogs.Add(new Catalog()
+                    await newCatalogQueue.AddAsync(new Message()
                     {
-                        ID = Guid.NewGuid(),
-                        Name = newProduct.Category,
-                        Products = new List<Product>()
+                        CorrelationId = incMessage.CorrelationId,
+                        Body = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(new Catalog()
+                        {
+                            ID = Guid.NewGuid(),
+                            Name = newProduct.Category,
+                            Description = string.Empty,
+                            Products = new List<Product>()
+                        }))
                     });
-                    await dbcontext.SaveChangesAsync();
                 }
+            }
+        }
+
+        [FunctionName("CreateCatalog")]
+        public static async void CreateCatalog(
+            [ServiceBusTrigger("catalog-create-command", Connection = "ServiceBusConnection")] BrokeredMessage incMessage,
+            ILogger log)
+        {
+            var newCatalog = incMessage.GetBody<Catalog>();
+            log.LogInformation($"Creating new catalog {newCatalog.Name}");
+
+            using (var dbcontext = new CatalogContext(new DbContextOptionsBuilder<CatalogContext>().UseSqlServer(Environment.GetEnvironmentVariable("DbConnection")).Options))
+            {
+                dbcontext.Catalogs.Add(newCatalog);
+                await dbcontext.SaveChangesAsync();
             }
         }
     }
