@@ -24,8 +24,6 @@ namespace CataBot.Products
             [ServiceBus("product-created", Connection = "ServiceBusConnection")] IAsyncCollector<Message> createdTopic,
             ILogger log)
         {
-            log.LogInformation("Creating a new product");
-
             using (var reader = new StreamReader(req.Body))
             {
                 var requestBody = await reader.ReadToEndAsync();
@@ -49,8 +47,15 @@ namespace CataBot.Products
 
                 await createdTopic.AddAsync(new Message()
                 {
-                    CorrelationId = req.Headers["CorrelationID"],
-                    Body = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(new ProductCreated(newProduct.ID, newProduct.Name, newProduct.Category)))
+                    CorrelationId = req.HttpContext.TraceIdentifier,
+                    Body = Encoding.UTF8.GetBytes(
+                        JsonConvert.SerializeObject(
+                            new ProductCreated()
+                            {
+                                ID = newProduct.ID,
+                                Name = newProduct.Name,
+                                Category = newProduct.Category
+                            }))
                 });
 
                 return new CreatedResult("", newProduct);

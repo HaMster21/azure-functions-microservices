@@ -3,14 +3,12 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
-using CataBot.Catalogs.Data;
 using CataBot.Domain.Model;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 
@@ -18,14 +16,12 @@ namespace CataBot.Catalogs
 {
     public static class Http
     {
-        [FunctionName("CreateCatalog")]
-        public static async Task<IActionResult> CreateCatalog(
+        [FunctionName("RequestCreateCatalog")]
+        public static async Task<IActionResult> RequestCreateCatalog(
             [HttpTrigger(AuthorizationLevel.Function, "post", Route = "catalog")] HttpRequest req,
             [ServiceBus("catalog-create-command", Connection = "ServiceBusConnection")] IAsyncCollector<Message> newCatalogQueue,
             ILogger log)
         {
-            log.LogInformation("Creating a new catalog");
-
             using (var reader = new StreamReader(req.Body))
             {
                 var requestBody = await reader.ReadToEndAsync();
@@ -45,7 +41,7 @@ namespace CataBot.Catalogs
                     Body = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(newCatalog))
                 });
 
-                return new CreatedResult("", newCatalog);
+                return new AcceptedResult();
             }
         }
     }
