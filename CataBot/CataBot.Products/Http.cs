@@ -1,11 +1,13 @@
 using System;
 using System.IO;
+using System.Text;
 using System.Threading.Tasks;
 using CataBot.Domain.Model;
+using CataBot.Domain.Schema;
 using CataBot.Products.Data;
-using CataBot.Products.Schema;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.EntityFrameworkCore;
@@ -19,7 +21,7 @@ namespace CataBot.Products
         [FunctionName("CreateProduct")]
         public static async Task<IActionResult> CreateProduct(
             [HttpTrigger(AuthorizationLevel.Function, "post", Route = "product")] HttpRequest req,
-            [ServiceBus("product-created", Connection = "ServiceBusConnection")] IAsyncCollector<ProductCreated> createdTopic,
+            [ServiceBus("product-created", Connection = "ServiceBusConnection")] IAsyncCollector<Message> createdTopic,
             ILogger log)
         {
             log.LogInformation("Creating a new product");
@@ -45,7 +47,11 @@ namespace CataBot.Products
                     await dbcontext.SaveChangesAsync();
                 }
 
-                await createdTopic.AddAsync(new ProductCreated(newProduct.ID, newProduct.Name, newProduct.Category));
+                await createdTopic.AddAsync(new Message()
+                {
+                    CorrelationId = req.Headers["CorrelationID"],
+                    Body = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(new ProductCreated(newProduct.ID, newProduct.Name, newProduct.Category)))
+                });
 
                 return new CreatedResult("", newProduct);
             }
