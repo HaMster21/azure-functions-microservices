@@ -39,12 +39,6 @@ namespace CataBot.Catalogs
                     Products = new List<Product>()
                 };
 
-                using (var dbcontext = new CatalogContext(new DbContextOptionsBuilder<CatalogContext>().UseSqlServer(Environment.GetEnvironmentVariable("DbConnection")).Options))
-                {
-                    dbcontext.Catalogs.Add(newCatalog);
-                    await dbcontext.SaveChangesAsync();
-                }
-
                 await newCatalogQueue.AddAsync(new Message()
                 {
                     CorrelationId = req.Headers["CorrelationID"],
